@@ -1,0 +1,51 @@
+.app-litteBoard-container,
+.app-litteBoard-whiteboard,
+.little-board-teacher-container,
+.little-board-student-container{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.app-litteBoard-ui{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5px 5px 10px 5px;
+    pointer-events: none;
+    z-index: 10;
+    .ant-tabs-nav::before {
+        border-bottom: 0 !important;  
+    }
+}
+.little-board-teacher-container,
+.little-board-student-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.little-board-student-container {
+    flex-direction: column-reverse;
+}
+.little-board-student-padding{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.little-board-teacher-statistics-board {
+    flex: 1;
+    background: white;
+    padding: 10px;
+    margin: 5px;
+    pointer-events: auto;
+}
+.little-board-teacher-bottom,
+.little-board-student-bottom {
+    display: flex;
+    justify-content: space-between;
+    pointer-events: auto;
+}

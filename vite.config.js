@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   });
   return {
     define: {
+      'process.env.NODE_ENV': '"production"',
       __VERSION__: JSON.stringify(pkg.version),
     },
     css: {
@@ -24,21 +25,21 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: path.resolve(__dirname, "src/index.ts"),
         formats: ['iife', 'es', "cjs"],
-        name: 'LittleBoard',
+        name: 'NetlessAppLittleBoard',
         fileName: 'index'
       },
       outdir: "dist",
       sourcemap: true,
-      rollupOptions: {
-        external,
-        output:{
-          globals:{
-            whiteWebSdk: 'white-web-sdk',
-            appliancePlugin: '@netless/appliance-plugin',
-            windowManager: '@netless/window-manager'
-          }
-        }
-      },
+      // rollupOptions: {
+      //   external,
+      //   output:{
+      //     globals:{
+      //       whiteWebSdk: 'white-web-sdk',
+      //       appliancePlugin: '@netless/appliance-plugin',
+      //       windowManager: '@netless/window-manager'
+      //     }
+      //   }
+      // },
       minify: isProd,
     }
   };

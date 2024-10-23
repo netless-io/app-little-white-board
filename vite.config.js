@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
         entry: path.resolve(__dirname, "src/index.ts"),
         formats: ['iife', 'es', "cjs"],
         name: 'LittleBoard',
+        fileName: 'index'
       },
       outdir: "dist",
       sourcemap: true,

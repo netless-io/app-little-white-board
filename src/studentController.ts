@@ -1,8 +1,9 @@
 import type { AppliancePluginInstance } from "@netless/appliance-plugin/dist/plugin";
 import type { AppContext, Storage } from "@netless/window-manager";
-import { Api, LitteBoardStorage, Logger, ProgressType } from "./app-little-board";
+import { Api, LitteBoardStorage, Logger, ProgressType, Student } from "./app-little-board";
 import type { StudentApp } from "./student";
 import cloneDeep from "lodash/cloneDeep";
+import { ViewManager } from "./viewManager";
 
 export class StudentController {
     readonly appliancePlugin: AppliancePluginInstance;
@@ -13,7 +14,8 @@ export class StudentController {
     $log: Logger;
     private vDom?: StudentApp;
     readonly api: Api;
-    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>,$log: Logger, api:Api) {
+    readonly viewManager: ViewManager;
+    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>,$log: Logger, api:Api, viewManager:ViewManager) {
         this.context = context;
         this.appliancePlugin = (context as any).manager.windowManger._appliancePlugin;
         this.uid = uid;
@@ -21,6 +23,7 @@ export class StudentController {
         this.storage = storage;
         this.$log = $log;
         this.api = api;
+        this.viewManager = viewManager;
         window.addEventListener("message", this.onInserImage);
     }
     get renderControl(){
@@ -83,6 +86,29 @@ export class StudentController {
             }, "*");
         }
     }
+    private setProgressEffect(progress:ProgressType){
+        this.vDom?.setProgress(progress);
+        switch (progress) {
+            case ProgressType.answering:
+                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                    this.viewManager.setStudentDisabledCameraTransform(false);
+                }
+                break;
+            default:
+                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                    this.viewManager.setStudentDisabledCameraTransform(true);
+                }
+                break;
+        }
+    }
+    private setUseListEffect(users?: Student[]){
+        const userList = users || [];
+        const user = userList.find(u=>u.uid === this.uid);
+        if (user) {
+            const isBol = !!user.isCommit
+            this.setCurIsCommit(isBol);
+        }
+    }
     mount(){
         if (!this.vDom) {
             setTimeout(() => {
@@ -90,35 +116,14 @@ export class StudentController {
             }, 50);
         }
         const progress =  this.storage.state.progress
-        this.vDom?.setProgress(progress);
-        switch (progress) {
-            case ProgressType.answering:
-                const user = this.storage.state.userList.find(u=>u.uid === this.uid);
-                if (user) {
-                    if (user.isCommit) {
-                        this.setCurIsCommit(true);
-                    } else {
-                        this.setCurIsCommit(false);
-                    }
-                }
-                break;
-            default:
-                break;
-        }
+        this.setProgressEffect(progress);
+        this.setUseListEffect(this.storage.state.userList);
         this.storage.addStateChangedListener(diff => {
             if (diff.progress && diff.progress.newValue) {
-                this.vDom?.setProgress(diff.progress.newValue); 
+                this.setProgressEffect(diff.progress.newValue);
             }
             if (diff.userList && diff.userList.newValue) {
-                const userList = diff.userList.newValue || [];
-                const user = userList.find(u=>u.uid === this.uid);
-                if (user) {
-                    if (user.isCommit) {
-                        this.setCurIsCommit(true);
-                    } else {
-                        this.setCurIsCommit(false);
-                    }
-                }
+                this.setUseListEffect(diff.userList.newValue);
             }
         });
     }

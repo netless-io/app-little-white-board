@@ -7,6 +7,7 @@ import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import type { Uid } from "@netless/appliance-plugin/dist/collector";
+import { ViewManager } from "./viewManager";
 
 export class TeacherController {
     readonly appliancePlugin: AppliancePluginInstance;
@@ -19,7 +20,8 @@ export class TeacherController {
     private scenePath?: string;
     readonly api: Api;
     private timer?:number;
-    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>, $log:Logger, api:Api) {
+    readonly viewManager: ViewManager;
+    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>, $log:Logger, api:Api, viewManager:ViewManager) {
         this.context = context;
         this.appliancePlugin = (context as any).manager.windowManger._appliancePlugin;
         this.uid = uid;
@@ -28,6 +30,7 @@ export class TeacherController {
         this.$log = $log;
         this.scenePath = context.getView()?.focusScenePath;
         this.api = api;
+        this.viewManager = viewManager;
         window.addEventListener("message", this.onInserImage);
     }
     setVDom(vDom: TeacherApp) {
@@ -50,6 +53,9 @@ export class TeacherController {
         }
     }
     onPublishQuestion(){
+        if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+            this.viewManager.setTeacherDisabledCameraTransform(true);
+        }
         if (this.api?.onPublishQuestion) {
             this.api?.onPublishQuestion(this.context.appId, this.uid);
         } else {
@@ -110,15 +116,16 @@ export class TeacherController {
         const displayer = this.context.getDisplayer();
         if (displayer) {
             const roomMembers = displayer.state.roomMembers;
-            const newAnswering = roomMembers.filter(c=>{
-                const suid = c.payload?.uid;
-                if (suid && suid !== this.uid) {
-                    const userList = this.storage.state.userList;
+            const userList = this.storage.state.userList;
+            const newAnswering = roomMembers.filter((item, index, arr) => {
+                const suid = item.payload?.uid;
+                if (suid && suid !== this.uid && arr.findIndex(u=>u.payload?.uid === suid) === index) {
                     if (userList && userList.find(u=>u.uid === suid)) {
                         return false;
                     }
                     return true;
                 }
+                return false;
             }).map(c=>({
                 uid: c.payload?.uid as string,
                 nickName: (c.payload?.nickName || c.payload?.cursorName || c.payload?.uid) as string,
@@ -126,13 +133,13 @@ export class TeacherController {
             }));
 
             if (newAnswering.length > 0) {
-                const userList = cloneDeep([...this.storage.state.userList, ...newAnswering]);  
-                this.storage.setState({ userList });
+                const _userList = cloneDeep([...userList, ...newAnswering]);  
+                this.storage.setState({ userList:_userList });
                 const appId = this.context.appId;
                 const scenePath = this.scenePath;
                 if (appId && scenePath) {
                     const elementIds  = this.renderControl?.getPageInfo(this.uid, this.context.appId, scenePath);
-                    for (const item of userList) {
+                    for (const item of _userList) {
                         const {uid} = item;
                         const hasCurPage = this.renderControl?.hasPage(uid, appId, scenePath);
                         if (!hasCurPage) {
@@ -171,6 +178,21 @@ export class TeacherController {
             key: this.uid
         }
     }
+    private setProgressEffect(progress:ProgressType){
+        this.vDom?.setProgress(progress);
+        switch (progress) {
+            case ProgressType.answering:
+                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                    this.viewManager.setTeacherDisabledCameraTransform(true);
+                }
+                break;
+            default:
+                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                    this.viewManager.setTeacherDisabledCameraTransform(false);
+                }
+                break;
+        }
+    }
     mount() {
         if (!this.vDom || !this.appliancePlugin.currentManager?.viewContainerManager.getView(this.context.appId)) {
             this.timer = setTimeout(() => {
@@ -185,7 +207,7 @@ export class TeacherController {
         this.vDom?.setPages(initPages);
         this.vDom?.setRenderPageId(this.renderPageId || this.uid);
         const progress =  this.storage.state.progress
-        this.vDom?.setProgress(progress);
+        this.setProgressEffect(progress);
         switch (progress) {
             case ProgressType.padding:
                 this.createTeacherPage();
@@ -209,11 +231,11 @@ export class TeacherController {
         }
         this.storage.addStateChangedListener((diff) => {
             if (diff.progress && diff.progress.newValue) {
-                this.vDom?.setProgress(diff.progress.newValue);
+                this.setProgressEffect(diff.progress.newValue);
             }
             if (diff.userList && !isEqual(diff.userList.newValue, diff.userList.oldValue)) {
                 const userList = diff.userList.newValue || [];
-                const newPages = userList.map(u=>({label: u?.nickName, key: u?.uid}));
+                const newPages = userList.filter((item, index, arr)=>arr.findIndex(u=>u.uid==item.uid)===index).map(u=>({label: u?.nickName, key: u?.uid}));
                 newPages.unshift(this.teacherPage);
                 this.vDom?.setPages(newPages);
                 if (this.storage.state.progress === ProgressType.answering) {

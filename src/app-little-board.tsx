@@ -8,7 +8,7 @@ import { StudentController } from "./studentController";
 import { TeacherApp } from "./teacher";
 import React from "react";
 import { StudentApp } from "./student";
-import isBoolean from "lodash/isBoolean";
+import { ViewManager } from "./viewManager";
 
 export type Logger = (...data: any[]) => void
 
@@ -104,12 +104,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     const options = (context.getAppOptions() || {}) as LittleBoardAppOptions;
     const { disableCameraTransform, log, ...hooks } = options;
     const $log = log || createLogger(context.getRoom());
-    if (isBoolean(disableCameraTransform)) {
-      const view = context.getView();
-      if (view) {
-        view.disableCameraTransform = disableCameraTransform;
-      }
-    }
+
     const { uid, nickName } = getUserPayload(context);
     const attribute = (context.getAttributes() || {}) as LittleBoardAttributes
     const role  = attribute.uid === uid ? RoleType.teacher : RoleType.student;
@@ -118,14 +113,14 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
       progress: ProgressType.padding,
       userList: [],
     });
-
     const updateTitle = (time?: string) => {
       box.titleBar.setTitle(`${title}   ${time}`);
     };
     const api = { ...hooks, $log, updateTitle };
     let controller:TeacherController | StudentController | undefined = undefined;
+    const viewManager = new ViewManager(context, role== RoleType.teacher, options);
     if (role === RoleType.teacher) {
-      controller = new TeacherController(context, uid, nickName, storage, $log, api);
+      controller = new TeacherController(context, uid, nickName, storage, $log, api, viewManager);
       ReactDOM.render(
         <TeacherApp controller={controller as TeacherController} />,
         $uiContent,
@@ -134,7 +129,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
         }
       );
     } else {
-      const controller = new StudentController(context, uid, nickName, storage, $log, api);
+      const controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager);
       ReactDOM.render(
         <StudentApp controller={controller} />,
         $uiContent,
@@ -146,7 +141,9 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     $log(`[LittleBoard] new ${context.appId}`);
     context.emitter.on("destroy", () => {
       controller?.destory();
+      viewManager?.destroy();
       $log(`[LittleBoard] ${context.appId} is closed`)
+
     });
     return controller;
   }

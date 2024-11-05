@@ -9,6 +9,7 @@ import { TeacherApp } from "./teacher";
 import React from "react";
 import { StudentApp } from "./student";
 import { ViewManager } from "./viewManager";
+import { WritableController } from "./writableManager";
 
 export type Logger = (...data: any[]) => void
 
@@ -119,8 +120,9 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     const api = { ...hooks, $log, updateTitle };
     let controller:TeacherController | StudentController | undefined = undefined;
     const viewManager = new ViewManager(context, role== RoleType.teacher, options);
+    const writeableManager = new WritableController(context, uid);
     if (role === RoleType.teacher) {
-      controller = new TeacherController(context, uid, nickName, storage, $log, api, viewManager);
+      controller = new TeacherController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
         <TeacherApp controller={controller as TeacherController} />,
         $uiContent,
@@ -129,7 +131,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
         }
       );
     } else {
-      const controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager);
+      const controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
         <StudentApp controller={controller} />,
         $uiContent,
@@ -142,6 +144,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     context.emitter.on("destroy", () => {
       controller?.destory();
       viewManager?.destroy();
+      writeableManager?.destroy();
       $log(`[LittleBoard] ${context.appId} is closed`)
 
     });

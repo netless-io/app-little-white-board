@@ -8,6 +8,7 @@ import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import type { Uid } from "@netless/appliance-plugin/dist/collector";
 import { ViewManager } from "./viewManager";
+import { WritableController } from "./writableManager";
 
 export class TeacherController {
     readonly appliancePlugin: AppliancePluginInstance;
@@ -21,7 +22,17 @@ export class TeacherController {
     readonly api: Api;
     private timer?:number;
     readonly viewManager: ViewManager;
-    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>, $log:Logger, api:Api, viewManager:ViewManager) {
+    readonly writeableManager: WritableController;
+    constructor(
+        context: AppContext, 
+        uid: string, 
+        nickName: string, 
+        storage: Storage<LitteBoardStorage>, 
+        $log:Logger, 
+        api:Api, 
+        viewManager:ViewManager, 
+        writeableManager: WritableController
+    ) {
         this.context = context;
         this.appliancePlugin = (context as any).manager.windowManger._appliancePlugin;
         this.uid = uid;
@@ -31,6 +42,7 @@ export class TeacherController {
         this.scenePath = context.getView()?.focusScenePath;
         this.api = api;
         this.viewManager = viewManager;
+        this.writeableManager = writeableManager;
         window.addEventListener("message", this.onInserImage);
     }
     setVDom(vDom: TeacherApp) {
@@ -96,12 +108,22 @@ export class TeacherController {
     get renderControl(){
         return this.appliancePlugin.currentManager?.renderControl;
     }
+    get pageAuth(){
+        return (this.appliancePlugin.currentManager?.collector as any).getAuthSpaceData()?.pageAuth;
+    }
     get renderPageId(){
         const render = ((this.renderControl as any).pageAuth)?.get(this.context.appId)?.get(this.scenePath)?.render;
         if (!render || render === 'localSelf') {
             return this.uid;
         }
         return render;
+    }
+    get ServiceRenderPageId(){
+        if (this.scenePath) {
+            const render = this.pageAuth?.[this.context.appId]?.[this.scenePath]?.render;
+            return render;
+        }
+        return undefined;
     }
     private get displayer(): Displayer<DisplayerCallbacks> {
         return this.context.getDisplayer();
@@ -160,7 +182,7 @@ export class TeacherController {
     }
     private createTeacherPage(){
         this.renderControl?.destoryByViewId(this.context.appId);
-        this.renderControl?.publishWriteAble([this.uid], true);
+        this.writeableManager.publishWriteAble([this.uid], true);
         // 创建一个老师画布,学生不可见
         this.renderControl?.addPage({
             viewId: this.context.appId,
@@ -247,6 +269,7 @@ export class TeacherController {
                 }
             }
         });
+        this.writeableManager.mount();
     }
     updateTitle() {
         if (this.storage.state.progress === ProgressType.answering) {
@@ -282,7 +305,7 @@ export class TeacherController {
       }
     publishQuestion() {
         this.appliancePlugin.currentManager?.textEditorManager.checkEmptyTextBlur();
-        this.renderControl?.publishWriteAble(true);
+        this.writeableManager.publishWriteAble(true);
         this.storage.setState({
             progress: ProgressType.answering,
             startAt: Date.now()
@@ -292,7 +315,7 @@ export class TeacherController {
         this.addRoomMemberListener();
     }
     finishAnswer() {
-        this.renderControl?.publishWriteAble([this.uid], true);
+        this.writeableManager.publishWriteAble([this.uid], true);
         this.storage.setState({
             progress: ProgressType.finish,
             finishAt: Date.now()
@@ -301,8 +324,12 @@ export class TeacherController {
     }
     switchPage (pageId:Uid) {
         if (this.scenePath) {
-            const isPublish = this.storage.state.progress === ProgressType.announcing;
-            this.renderControl?.setPageRender(this.context.appId, this.scenePath, pageId, isPublish);
+            if (this.storage.state.progress === ProgressType.announcing) {
+                this.storage.setState({
+                    progress: ProgressType.finish
+                });
+            }
+            this.renderControl?.setPageRender(this.context.appId, this.scenePath, pageId, false);
         }
     }
     publishAnswer(uid:string) {

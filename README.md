@@ -48,10 +48,6 @@ WindowManager.register({
         // 可选, 提交答案
         onCommit:(appId:string, userId:string) => {
             console.log('LittleBoard Commit', appId, userId);
-            // 学生提交答案后,关闭可写权限
-            if (uid === userId && room.isWritable) {
-                room.setWritable(false);
-            }
         }
     }
 });

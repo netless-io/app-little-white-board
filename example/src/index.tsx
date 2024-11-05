@@ -54,8 +54,8 @@ if (!sUid) {
     sessionStorage.setItem('uid', uid); 
 }
 const room = await whiteWebSdk.joinRoom({
-    uuid:"6150700094f311ef8adaab211229a356",
-    roomToken:"NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMwMTgyMjUwNDM5Jm5vbmNlPTYxNmVjZDcwLTk0ZjMtMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPWJkYjU4MDFiYjk2MmYyODFhYTc4OGQ4YmE3OTUyZDI1YjkzODI5OGUzZWY1NzIzMzc1YzAxM2Q5NTgwMzFkYjEmdXVpZD02MTUwNzAwMDk0ZjMxMWVmOGFkYWFiMjExMjI5YTM1Ng",
+    uuid:"74823ed09a8711ef824257d035d19069",
+    roomToken:"NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMwNzk1NjAzOTU5Jm5vbmNlPTc0OWVhMDcwLTlhODctMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPTZmNzViMGU5ZDcwM2M2YTY3YWFiMDc3NGFlMjAxMjRiMjFlNzI4YzgwMmQ1ZmRhNjAxZmJkYzVkMDAwMDgwNDAmdXVpZD03NDgyM2VkMDlhODcxMWVmODI0MjU3ZDAzNWQxOTA2OQ",
     uid,
     region: "cn-hz",
     isWritable: isWritable,
@@ -100,6 +100,9 @@ if (manager) {
                 cdn: {
                     fullWorkerUrl,
                     subWorkerUrl
+                },
+                canvasOpt: {
+                    contextType: '2d',
                 }
             }
         }
@@ -114,17 +117,14 @@ if (manager) {
                 console.log('LittleBoard Mount', appId, userId);
                 !isWritable && manager?.setReadonly(true);
             },
-            // 可选, 发布问题
-            onPublishQuestion:(appId:string, userId:string)=>{
-                console.log('LittleBoard PublishQuestion', appId, userId);
-            },
-            // 可选, 提交答案
-            onCommit:(appId:string, userId:string) => {
-                console.log('LittleBoard Commit', appId, userId);
-                if (uid === userId && room.isWritable) {
-                    room.setWritable(false);
-                }
-            },
+            // // 可选, 发布问题
+            // onPublishQuestion:(appId:string, userId:string)=>{
+            //     console.log('LittleBoard PublishQuestion', appId, userId);
+            // },
+            // // 可选, 提交答案
+            // onCommit:(appId:string, userId:string) => {
+            //     console.log('LittleBoard Commit', appId, userId);
+            // },
             /** 上传图片,返回插入图片的信息 */
             async onClickImage(){
                 // 弹出云盘,模拟1s之后放回图片信息

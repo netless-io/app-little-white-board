@@ -4,6 +4,7 @@ import { Api, LitteBoardStorage, Logger, ProgressType, Student } from "./app-lit
 import type { StudentApp } from "./student";
 import cloneDeep from "lodash/cloneDeep";
 import { ViewManager } from "./viewManager";
+import { WritableController } from "./writableManager";
 
 export class StudentController {
     readonly appliancePlugin: AppliancePluginInstance;
@@ -15,7 +16,17 @@ export class StudentController {
     private vDom?: StudentApp;
     readonly api: Api;
     readonly viewManager: ViewManager;
-    constructor(context: AppContext, uid: string, nickName: string, storage: Storage<LitteBoardStorage>,$log: Logger, api:Api, viewManager:ViewManager) {
+    readonly writeableManager: WritableController;
+    constructor(
+        context: AppContext, 
+        uid: string, 
+        nickName: string, 
+        storage: Storage<LitteBoardStorage>,
+        $log: Logger, 
+        api:Api, 
+        viewManager:ViewManager,
+        writeableManager: WritableController
+    ) {
         this.context = context;
         this.appliancePlugin = (context as any).manager.windowManger._appliancePlugin;
         this.uid = uid;
@@ -24,6 +35,7 @@ export class StudentController {
         this.$log = $log;
         this.api = api;
         this.viewManager = viewManager;
+        this.writeableManager = writeableManager;
         window.addEventListener("message", this.onInserImage);
     }
     get renderControl(){
@@ -126,16 +138,17 @@ export class StudentController {
                 this.setUseListEffect(diff.userList.newValue);
             }
         });
+        this.writeableManager.mount();
     }
     setCurIsCommit(bol:boolean){
         const isWriteable = this.context.getIsWritable();
         this.vDom?.setIsCommit(bol);
         if (bol && isWriteable) {
-            this.appliancePlugin.currentManager?.publishSelfWriteable(false, true);
+            this.writeableManager.publishOneWriteAble(this.uid, 'readOnly', true);
             return;
         } 
         if (!bol && !isWriteable) {
-            this.appliancePlugin.currentManager?.publishSelfWriteable(true, true);
+            this.writeableManager.publishOneWriteAble(this.uid, 'writable', true);
             return
         }
     }
@@ -151,6 +164,7 @@ export class StudentController {
             throw new Error("[LittleBoard] user not found");
         }
         this.storage.setState({ userList });
+        this.writeableManager.publishOneWriteAble(this.uid, 'readOnly', true);
     }
     destory(){
         window.removeEventListener("message", this.onInserImage);

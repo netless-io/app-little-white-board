@@ -54,7 +54,7 @@ const TeacherBottom = (props:{controller:TeacherController, progress:ProgressTyp
             }}>结束</Button>
           }
           {
-            progress === ProgressType.finish && <Button type="primary" onClick={()=>{
+            progress === ProgressType.finish && controller.ServiceRenderPageId !== activeKey && <Button type="primary" onClick={()=>{
               controller.publishAnswer(activeKey);
               // todo
             }}>全班展示</Button>

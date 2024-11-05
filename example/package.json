@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@netless/appliance-plugin": "1.1.1-hotfix.0",
+    "@netless/appliance-plugin": "1.1.2",
     "@netless/window-manager": "^0.4.75",
     "antd": "^5.11.4",
     "polly-js": "^1.8.3",

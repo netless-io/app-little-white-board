@@ -131,7 +131,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
         }
       );
     } else {
-      const controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
+      controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
         <StudentApp controller={controller} />,
         $uiContent,

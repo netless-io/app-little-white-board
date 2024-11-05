@@ -3,6 +3,7 @@ import { Uid } from "@netless/appliance-plugin/dist/collector/types";
 import type { AppContext, Room, Storage } from "@netless/window-manager";
 import isString from "lodash/isString";
 import isArray from "lodash/isArray";
+import clone from "lodash/clone";
 
 export type FilterPublishAutType = "writable" | "readOnly";
 
@@ -49,12 +50,12 @@ export class WritableController {
     async setWriteable(writeable: LitteBoardWriteableStorage, isSync:boolean): Promise<void> {    
         const {writable, readOnly} = writeable;
         if (writable===true || (isArray(writable) && writable.length)) {
-            this.writable = writable;
+            this.writable = clone(writable);
         } else {
             this.writable = undefined;
         }
         if (readOnly ===true || (isArray(readOnly) && readOnly.length)) {
-            this.readOnly = readOnly;
+            this.readOnly = clone(readOnly);
         } else {
             this.readOnly = undefined;
         }

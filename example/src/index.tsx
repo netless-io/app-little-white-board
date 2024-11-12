@@ -3,6 +3,7 @@ import '@netless/window-manager/dist/style.css';
 import './index.css';
 import '@netless/appliance-plugin/dist/style.css';
 import { WhiteWebSdk, DeviceType, DefaultHotKeys, HotKeyEvent, KeyboardKind} from "white-web-sdk";
+import {NetlessAppLittleBoard} from '../../src/index';
 import { WindowManager } from "@netless/window-manager";
 import { ApplianceMultiPlugin } from '@netless/appliance-plugin';
 import fullWorkerString from '@netless/appliance-plugin/dist/fullWorker.js?raw';
@@ -54,8 +55,8 @@ if (!sUid) {
     sessionStorage.setItem('uid', uid); 
 }
 const room = await whiteWebSdk.joinRoom({
-    uuid:"74823ed09a8711ef824257d035d19069",
-    roomToken:"NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMwNzk1NjAzOTU5Jm5vbmNlPTc0OWVhMDcwLTlhODctMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPTZmNzViMGU5ZDcwM2M2YTY3YWFiMDc3NGFlMjAxMjRiMjFlNzI4YzgwMmQ1ZmRhNjAxZmJkYzVkMDAwMDgwNDAmdXVpZD03NDgyM2VkMDlhODcxMWVmODI0MjU3ZDAzNWQxOTA2OQ",
+    uuid: "f3f63400a0b811ef90a28fe3f64a87dd",
+    roomToken: "NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMxNDc2NTcwMTIwJm5vbmNlPWY0MTRiODgwLWEwYjgtMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPWMxYjE5ZTg1ZWIwZTgxOTk5NzNiMjc5ZjM0ODgzMTJhMzFmMzdjNzBhOTIxN2Y2NjkxMTc2MDQxYzBlMDEwZjAmdXVpZD1mM2Y2MzQwMGEwYjgxMWVmOTBhMjhmZTNmNjRhODdkZA",
     uid,
     region: "cn-hz",
     isWritable: isWritable,
@@ -109,7 +110,9 @@ if (manager) {
     );
     await WindowManager.register({
         kind: "LittleBoard",
-        src: ()=> import('../../src/index'),
+        src: NetlessAppLittleBoard,
+        // src: "https://cdn.jsdelivr.net/npm/@netless/app-little-white-board@0.0.1-beta.5/dist/index.iife.js",
+        // name: "NetlessAppLittleBoard",
         appOptions: {
             disableCameraTransform: true,
             // 可选, 发布问题

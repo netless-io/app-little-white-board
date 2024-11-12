@@ -54,6 +54,7 @@ export class TeacherController {
     onMount() {
         if (this.api?.onMount) {
             this.api?.onMount(this.context.appId, this.uid);
+            this.viewManager.mount();
         } else {
             window.postMessage({
                 type: "@netless/app-little-white-board",
@@ -65,8 +66,9 @@ export class TeacherController {
         }
     }
     onPublishQuestion(){
-        if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
-            this.viewManager.setTeacherDisabledCameraTransform(true);
+        if (!this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+            this.viewManager.setTeacherDisabledCameraTransform(false);
+            this.viewManager.setCanSync(false);
         }
         if (this.api?.onPublishQuestion) {
             this.api?.onPublishQuestion(this.context.appId, this.uid);
@@ -204,13 +206,15 @@ export class TeacherController {
         this.vDom?.setProgress(progress);
         switch (progress) {
             case ProgressType.answering:
-                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
-                    this.viewManager.setTeacherDisabledCameraTransform(true);
+                if (!this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                    this.viewManager.setTeacherDisabledCameraTransform(false);
+                    this.viewManager.setCanSync(false);
                 }
                 break;
             default:
-                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                if (!this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
                     this.viewManager.setTeacherDisabledCameraTransform(false);
+                    this.viewManager.setCanSync(true);
                 }
                 break;
         }

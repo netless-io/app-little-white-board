@@ -50,6 +50,7 @@ export class StudentController {
     onMount() {
         if (this.api?.onMount) {
             this.api?.onMount(this.context.appId, this.uid);
+            this.viewManager.mount();
         } else {
             window.postMessage({
                 type: "@netless/app-little-white-board",
@@ -102,12 +103,12 @@ export class StudentController {
         this.vDom?.setProgress(progress);
         switch (progress) {
             case ProgressType.answering:
-                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                if (!this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
                     this.viewManager.setStudentDisabledCameraTransform(false);
                 }
                 break;
             default:
-                if (this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
+                if (!this.viewManager.isHasDisabledCameraTransform && this.viewManager.view) {
                     this.viewManager.setStudentDisabledCameraTransform(true);
                 }
                 break;

@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { TeacherController } from "./teacherController";
 import { ProgressType } from "./app-little-board";
 import { Button, Flex, Spin, Tabs } from 'antd';
 import { ToolBar } from './component/toolbar';
 import type { Uid } from '@netless/appliance-plugin/dist/collector';
+import { I18n_Teacher, I18nTeacherKey, Language } from './locale';
+
+
 export type ITeacherAppProps = {
     controller: TeacherController;
+    language: Language;
 };
 
 export interface ITeacherAppState {
@@ -21,8 +25,17 @@ export type pageListItem = {
     key: string;
 }
 
+export const TeacherContext = React.createContext<{
+  language: Language;
+  i18n: Record<I18nTeacherKey, string>
+}>({
+  language: 'zh-CN',
+  i18n: I18n_Teacher['zh-CN']
+});
+
 const TeacherBottom = (props:{controller:TeacherController, progress:ProgressType, activeKey: string}) => {
     const {controller, progress, activeKey} = props;
+    const { i18n } = useContext(TeacherContext);
     let isAbled = false;
     switch (progress) {
       case ProgressType.developing:
@@ -45,19 +58,19 @@ const TeacherBottom = (props:{controller:TeacherController, progress:ProgressTyp
             progress === ProgressType.developing && <Button type="primary" onClick={()=>{
               controller.publishQuestion();
               controller.onPublishQuestion();
-            }}>发布</Button>
+            }}>{i18n['publish']}</Button>
           }
           {
             progress === ProgressType.answering && <Button type="primary" onClick={()=>{
               controller.finishAnswer();
               // todo
-            }}>结束</Button>
+            }}>{i18n['finish']}</Button>
           }
           {
             progress === ProgressType.finish && controller.ServiceRenderPageId !== activeKey && <Button type="primary" onClick={()=>{
               controller.publishAnswer(activeKey);
               // todo
-            }}>全班展示</Button>
+            }}>{i18n['show']}</Button>
           }
         </div>
       </div>
@@ -65,10 +78,11 @@ const TeacherBottom = (props:{controller:TeacherController, progress:ProgressTyp
 }
 const TeacherStatisticsBoard= (props:{commits:string[], unCommits:string[]}) => {
   const {commits, unCommits} = props;
+  const { i18n } = useContext(TeacherContext);
   return <div className="little-board-teacher-statistics-board">
       <Flex gap="middle">
           <div style={{width: '50%'}}>
-            <h3>已提交</h3>
+            <h3>{i18n['committed']}</h3>
             <Flex gap="small" vertical wrap>
               {
                 commits.map((name, index)=>(
@@ -78,7 +92,7 @@ const TeacherStatisticsBoard= (props:{commits:string[], unCommits:string[]}) => 
             </Flex>
           </div>
           <div style={{width: '50%'}}>
-            <h3>未提交</h3>
+            <h3>{i18n['uncommitted']}</h3>
             <Flex gap="small" vertical wrap>
               {
                 unCommits.map((name, index)=>(
@@ -125,28 +139,31 @@ export class TeacherApp extends React.Component<ITeacherAppProps, ITeacherAppSta
       this.props.controller.switchPage(activeKey);
     }
     render(){
-      const {controller} = this.props;
+      const {controller, language} = this.props;
       const {activeKey, progress, pages, commits, unCommits} = this.state;
+      const i18n = I18n_Teacher[language];
       if (progress === ProgressType.padding) {
         return (
           <div className="little-board-student-container">
             <div className="little-board-student-padding">
-                <Spin tip="Loading..." size="large" >Loading...</Spin>
+                <Spin tip={i18n['padding']} size="large" >{i18n['padding']}</Spin>
             </div> 
           </div>
         )
       }
       return (
         <div className="little-board-teacher-container">
-          <Tabs
-            style={{pointerEvents:'auto'}}
-            onChange={this.onChange}
-            activeKey={activeKey}
-            type="card"
-            items={pages}
-          />
-          {activeKey === controller.uid && progress === ProgressType.answering && <TeacherStatisticsBoard commits={commits} unCommits={unCommits} />}
-          <TeacherBottom controller={controller} progress={progress} activeKey={activeKey} />
+          <TeacherContext.Provider value={{ language, i18n }}>
+            <Tabs
+              style={{pointerEvents:'auto'}}
+              onChange={this.onChange}
+              activeKey={activeKey}
+              type="card"
+              items={pages}
+            />
+            {activeKey === controller.uid && progress === ProgressType.answering && <TeacherStatisticsBoard commits={commits} unCommits={unCommits} />}
+            <TeacherBottom controller={controller} progress={progress} activeKey={activeKey} />
+          </TeacherContext.Provider>
         </div>
       )
     }

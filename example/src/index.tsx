@@ -55,8 +55,8 @@ if (!sUid) {
     sessionStorage.setItem('uid', uid); 
 }
 const room = await whiteWebSdk.joinRoom({
-    uuid: "f3f63400a0b811ef90a28fe3f64a87dd",
-    roomToken: "NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMxNDc2NTcwMTIwJm5vbmNlPWY0MTRiODgwLWEwYjgtMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPWMxYjE5ZTg1ZWIwZTgxOTk5NzNiMjc5ZjM0ODgzMTJhMzFmMzdjNzBhOTIxN2Y2NjkxMTc2MDQxYzBlMDEwZjAmdXVpZD1mM2Y2MzQwMGEwYjgxMWVmOTBhMjhmZTNmNjRhODdkZA",
+    uuid: "eb20c780a48e11ef844c9de7e0348444",
+    roomToken: "NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMxODk4MzIxMDk2Jm5vbmNlPWViNDA4NDgwLWE0OGUtMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPTdhZDAwNDdkZGI5ODYyZDgxOTk1NDQ0YTAzMzZlNzE2MGNjNzAwNDBkNDBjOTI5MDQ0MDM0ZTYyZmFlOTVjMDMmdXVpZD1lYjIwYzc4MGE0OGUxMWVmODQ0YzlkZTdlMDM0ODQ0NA",
     uid,
     region: "cn-hz",
     isWritable: isWritable,
@@ -114,6 +114,7 @@ if (manager) {
         // src: "https://cdn.jsdelivr.net/npm/@netless/app-little-white-board@0.0.1-beta.5/dist/index.iife.js",
         // name: "NetlessAppLittleBoard",
         appOptions: {
+            language: 'en',
             disableCameraTransform: true,
             // 可选, 发布问题
             onMount:(appId:string, userId:string)=>{

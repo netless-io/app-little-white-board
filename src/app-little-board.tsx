@@ -10,6 +10,7 @@ import React from "react";
 import { StudentApp } from "./student";
 import { ViewManager } from "./viewManager";
 import { WritableController } from "./writableManager";
+import { Language } from "./locale";
 
 export type Logger = (...data: any[]) => void
 
@@ -52,6 +53,8 @@ export type LitteBoardStorage = {
 export interface LittleBoardAppOptions {
   /** Disables user move / scale the image and whiteboard. */
   disableCameraTransform?: boolean;
+  /** 语言, 默认 zh-CN */
+  language?: Language;
   /** 上传图片事件,如果需要插入图片功能,必需在该事件中完成上传并返回图片信息 */
   onClickImage?: () => Promise<UploadImageResult>;
   /** Custom logger. Default: a logger that reports to the whiteboard server. */
@@ -103,7 +106,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     context.mountView($whiteBoard);
 
     const options = (context.getAppOptions() || {}) as LittleBoardAppOptions;
-    const { disableCameraTransform, log, ...hooks } = options;
+    const { disableCameraTransform, language= 'zh-CN', log, ...hooks } = options;
     const $log = log || createLogger(context.getRoom());
 
     const { uid, nickName } = getUserPayload(context);
@@ -124,7 +127,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     if (role === RoleType.teacher) {
       controller = new TeacherController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
-        <TeacherApp controller={controller as TeacherController} />,
+        <TeacherApp controller={controller as TeacherController} language={language} />,
         $uiContent,
         ()=>{
           controller?.mount()
@@ -133,7 +136,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     } else {
       controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
-        <StudentApp controller={controller} />,
+        <StudentApp controller={controller} language={language} />,
         $uiContent,
         ()=>{
           controller?.mount()

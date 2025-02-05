@@ -1,6 +1,7 @@
 # app-little-white-board
 
 Netless App for Small whiteboard that can switch between different scene screens
+![Image](https://github.com/user-attachments/assets/20810ea6-7d85-4e72-b75f-185599fffaf8)
 
 ## Install
 `` npm add @netless/app-little-white-board ``
@@ -16,11 +17,12 @@ WindowManager.register({
     kind: "LittleBoard",
     src: LittleBoard,
     appOptions: {
-        /** 是否静止画布放缩或拖拽  */
+        /** language: "en" | "zh-CN" */
+        language: 'en',
+        /** Whether to resize or drag the stationary canvas  */
         disableCameraTransform: true,
-        /** 上传图片,返回插入图片的信息 */
+        /** Access the event of uploading an image to the cloud disk, and return the information of inserting an image */
         async onClickImage(){
-            // 弹出云盘,模拟1s之后放回图片信息
             return new Promise((resolve) => {
                 setTimeout(()=>{
                     resolve({
@@ -35,17 +37,16 @@ WindowManager.register({
                 }, 1000)
             });
         }
-        // 可选, 发布问题
-        onMount:(appId:string, userId:string) => {
+        // a callback at app mount time, not required */
+        onMount:(appId:string, userId:string)=>{
             console.log('LittleBoard Mount', appId, userId);
-            // 禁止编辑
             !isWritable && manager?.setReadonly(true);
         },
-        // 可选, 发布问题
+        // a callback on teacher publish question time, not required
         onPublishQuestion:(appId:string, userId:string)=>{
             console.log('LittleBoard PublishQuestion', appId, userId);
         },
-        // 可选, 提交答案
+        // a callback on students commit answer time, not required
         onCommit:(appId:string, userId:string) => {
             console.log('LittleBoard Commit', appId, userId);
         }
@@ -60,12 +61,12 @@ Insert LittleBoard courseware into the room:
 manager.addApp({
     kind: "LittleBoard",
     options: { 
-        title: "小白板",
-        /** 必需, 白板的路径 */
+        title: "Little Board app",
+        /** Whiteboard scenePath, required */
         scenePath: '/LittleBoard'
     },
     attributes: {
-        /** 老师的uid */
+        /** teacher's uid */
         uid: isWritable && sessionStorage.getItem('uid'),
     }
 });

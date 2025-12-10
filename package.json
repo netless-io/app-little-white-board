@@ -1,6 +1,6 @@
 {
   "name": "@netless/app-little-white-board",
-  "version": "0.0.2-beta.0",
+  "version": "0.0.2",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -24,7 +24,7 @@
     "example": "example"
   },
   "author": "hqer",
-  "license": "ISC",
+  "license": "MTI",
   "bugs": {
     "url": "https://github.com/netless-io/app-little-white-board/issues"
   },
@@ -49,5 +49,8 @@
     "@ant-design/icons": "^5.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

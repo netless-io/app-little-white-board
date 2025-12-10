@@ -1,11 +1,11 @@
 import type { AppliancePluginInstance } from "@netless/appliance-plugin";
 import type { AppContext, Displayer, Storage } from "@netless/window-manager";
-import { Api, LitteBoardStorage, Logger, ProgressType } from "./app-little-board";
+import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage } from "./app-little-board";
 import type { DisplayerCallbacks } from "white-web-sdk";
 import { TeacherApp } from "./teacher";
-import cloneDeep from "lodash/cloneDeep";
+// import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
+// import isEqual from "lodash/isEqual";
 import type { Uid } from "@netless/appliance-plugin/dist/collector";
 import { ViewManager } from "./viewManager";
 import { WritableController } from "./writableManager";
@@ -16,6 +16,7 @@ export class TeacherController {
     readonly uid: string;
     readonly nickName: string;
     readonly storage: Storage<LitteBoardStorage>;
+    readonly studentsStorage: Storage<StudentsStorage>;
     readonly $log: Logger;
     private vDom?: TeacherApp;
     private scenePath?: string;
@@ -28,6 +29,7 @@ export class TeacherController {
         uid: string, 
         nickName: string, 
         storage: Storage<LitteBoardStorage>, 
+        studentsStorage: Storage<StudentsStorage>,
         $log:Logger, 
         api:Api, 
         viewManager:ViewManager, 
@@ -38,6 +40,7 @@ export class TeacherController {
         this.uid = uid;
         this.nickName = nickName;
         this.storage = storage;
+        this.studentsStorage = studentsStorage;
         this.$log = $log;
         this.scenePath = context.getView()?.focusScenePath;
         this.api = api;
@@ -133,6 +136,9 @@ export class TeacherController {
     private get isReplay(): boolean {
         return this.context.isReplay;
     }
+    get timestamp(): number {
+        return this.context.getRoom()?.calibrationTimestamp || Date.now();
+    }
     private get callbackName(): string {
         return this.isReplay ? "onPlayerStateChanged" : "onRoomStateChanged";
     }
@@ -140,31 +146,36 @@ export class TeacherController {
         const displayer = this.context.getDisplayer();
         if (displayer) {
             const roomMembers = displayer.state.roomMembers;
-            const userList = this.storage.state.userList;
-            const newAnswering = roomMembers.filter((item, index, arr) => {
-                const suid = item.payload?.uid;
-                if (suid && suid !== this.uid && arr.findIndex(u=>u.payload?.uid === suid) === index) {
-                    if (userList && userList.find(u=>u.uid === suid)) {
-                        return false;
-                    }
-                    return true;
+            const studentsList = Object.keys(this.studentsStorage.state) || [];
+            console.log('studentsList===>', studentsList, roomMembers);
+            const newAnswering: Uid[] = [];
+            // const leaveStudents: Uid[] = [];
+            // for (const uid of studentsList) {
+            //     if (!roomMembers.find((item) => item.payload?.uid !== this.uid &&item.payload?.uid === uid)) {
+            //         this.studentsStorage.setState({
+            //             [uid]: undefined
+            //         });
+            //         leaveStudents.push(uid);
+            //     }
+            // }
+            for (const member of roomMembers) {
+                const suid = member.payload?.uid as string;
+                if (suid && suid !== this.uid && !studentsList.find((uid: Uid) => uid ===suid)) {
+                    this.studentsStorage.setState({
+                        [suid]: {
+                            nickName: member.payload?.nickName || member.payload?.cursorName || member.payload?.uid,
+                            isCommit: false
+                        }
+                    });
+                    newAnswering.push(suid);
                 }
-                return false;
-            }).map(c=>({
-                uid: c.payload?.uid as string,
-                nickName: (c.payload?.nickName || c.payload?.cursorName || c.payload?.uid) as string,
-                isCommit: false
-            }));
-
-            if (newAnswering.length > 0) {
-                const _userList = cloneDeep([...userList, ...newAnswering]);  
-                this.storage.setState({ userList:_userList });
+            };
+            if (newAnswering.length > 0) { 
                 const appId = this.context.appId;
                 const scenePath = this.scenePath;
                 if (appId && scenePath) {
                     const elementIds  = this.renderControl?.getPageInfo(this.uid, this.context.appId, scenePath);
-                    for (const item of _userList) {
-                        const {uid} = item;
+                    for (const uid of newAnswering) {
                         const hasCurPage = this.renderControl?.hasPage(uid, appId, scenePath);
                         if (!hasCurPage) {
                             this.renderControl?.addPage({
@@ -175,8 +186,19 @@ export class TeacherController {
                         }
                     }
                 }
-                
             }
+            // if (leaveStudents.length > 0) {
+            //     for (const uid of leaveStudents) {
+            //         const appId = this.context.appId;
+            //         const scenePath = this.scenePath;
+            //         if (appId && scenePath) {
+            //             const hasCurPage = this.renderControl?.hasPage(uid, appId, scenePath);
+            //             if (hasCurPage) {
+            //                 this.renderControl?.delPage(uid, this.context.appId);
+            //             }
+            //         }
+            //     }
+            // }
         }
     }, 500, {maxWait:1000}) 
     private addRoomMemberListener(){
@@ -192,8 +214,8 @@ export class TeacherController {
         }, true);
         this.storage.setState({
             progress: ProgressType.developing,
-            userList: []
         });
+        this.studentsStorage.emptyStorage();
         this.vDom?.setProgress(ProgressType.developing);
     }
     get teacherPage() {
@@ -224,11 +246,11 @@ export class TeacherController {
             this.timer = setTimeout(() => {
                 this.timer =  undefined;
                 this.mount();
-            }, 50);
+            }, 50) as unknown as number;
             return;
         }
         const teacherPage = {label: this.nickName, key: this.uid};
-        const initPages = this.storage.state.userList?.map(u=>({label: u?.nickName, key: u?.uid})) || [];
+        const initPages = Object.entries(this.studentsStorage.state || {}).map(([uid, student]: [Uid, Student]) => ({label: student.nickName, key: uid})) || [];
         initPages.unshift(teacherPage);
         this.vDom?.setPages(initPages);
         this.vDom?.setRenderPageId(this.renderPageId || this.uid);
@@ -239,9 +261,9 @@ export class TeacherController {
                 this.createTeacherPage();
                 break;
             case ProgressType.answering:
-                const userList = this.storage.state.userList || [];
-                let commits = userList.filter(u=>u.isCommit).map(u=>u.nickName);
-                let unCommits = userList.filter(u=>!u.isCommit).map(u=>u.nickName);
+                const userList = Object.values(this.studentsStorage.state || {}) || [];
+                const commits = userList.filter(u=>u.isCommit).map(u=>u.nickName);
+                const unCommits = userList.filter(u=>!u.isCommit).map(u=>u.nickName);
                 this.vDom?.setCommitList(commits);
                 this.vDom?.setUnCommitList(unCommits);
                 this.updateTitle();
@@ -259,15 +281,16 @@ export class TeacherController {
             if (diff.progress && diff.progress.newValue) {
                 this.setProgressEffect(diff.progress.newValue);
             }
-            if (diff.userList && !isEqual(diff.userList.newValue, diff.userList.oldValue)) {
-                const userList = diff.userList.newValue || [];
-                const newPages = userList.filter((item, index, arr)=>arr.findIndex(u=>u.uid==item.uid)===index).map(u=>({label: u?.nickName, key: u?.uid}));
+        });
+        this.studentsStorage.addStateChangedListener((diff) => {
+            if (diff) {
+                const userList = Object.entries(this.studentsStorage.state || {}) || [];
+                const newPages = userList.map(([uid,student])=>({label: student.nickName, key: uid}));
                 newPages.unshift(this.teacherPage);
                 this.vDom?.setPages(newPages);
                 if (this.storage.state.progress === ProgressType.answering) {
-                    const userList = diff.userList.newValue || [];
-                    let commits = userList.filter(u=>u.isCommit).map(u=>u.nickName);
-                    let unCommits = userList.filter(u=>!u.isCommit).map(u=>u.nickName);
+                    const commits = userList.filter(u=>u[1].isCommit).map(u=>u[1].nickName);
+                    const unCommits = userList.filter(u=>!u[1].isCommit).map(u=>u[1].nickName);
                     this.vDom?.setCommitList(commits);
                     this.vDom?.setUnCommitList(unCommits);
                 }
@@ -279,8 +302,7 @@ export class TeacherController {
         if (this.storage.state.progress === ProgressType.answering) {
             const startAt = this.storage.state.startAt;
             if (startAt) {
-                const now = Date.now();
-                const duration = now - startAt;
+                const duration = this.timestamp - startAt;
                 if (duration) {
                     const time = this.millisecondsToTime(duration);
                     this.api.updateTitle(time);
@@ -289,7 +311,7 @@ export class TeacherController {
             this.timer = setTimeout(() => {
                 this.timer = undefined;
                 this.updateTitle()
-            }, 1000);
+            }, 1000) as unknown as number;
         }
     }
     private millisecondsToTime = (milliseconds: number): string => {
@@ -312,7 +334,7 @@ export class TeacherController {
         this.writeableManager.publishWriteAble(true);
         this.storage.setState({
             progress: ProgressType.answering,
-            startAt: Date.now()
+            startAt: this.timestamp
         });
         this.updateTitle();
         this.onRoomMemberListener();
@@ -322,7 +344,7 @@ export class TeacherController {
         this.writeableManager.publishWriteAble([this.uid], true);
         this.storage.setState({
             progress: ProgressType.finish,
-            finishAt: Date.now()
+            finishAt: this.timestamp
         });
         this.displayer.callbacks.off(this.callbackName, this.onRoomMemberListener);
     }

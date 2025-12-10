@@ -31,13 +31,15 @@ export enum ProgressType {
   announcing = 4
 }
 
+
+export type Uid = string;
+
 export interface LittleBoardAttributes {
   /** teacher's uid */
-  uid: string;
+  uid: Uid;
 }
 
 export type Student = {
-  uid: string;
   nickName: string;
   isCommit: boolean;
 }
@@ -45,9 +47,12 @@ export type Student = {
 export type LitteBoardStorage = {
   teacher: string;
   progress: ProgressType;
-  userList: Student[];
   startAt?: number;
   finishAt?: number;
+};
+
+export type StudentsStorage = {
+  [key: Uid]: Student;
 };
 
 export interface LittleBoardAppOptions {
@@ -112,11 +117,11 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     const { uid, nickName } = getUserPayload(context);
     const attribute = (context.getAttributes() || {}) as LittleBoardAttributes
     const role  = attribute.uid === uid ? RoleType.teacher : RoleType.student;
-    const storage = context.createStorage<LitteBoardStorage>(context.appId, {
+    const storage = context.createStorage<LitteBoardStorage>(`${context.appId}-progress`, {
       teacher: attribute.uid,
       progress: ProgressType.padding,
-      userList: [],
     });
+    const studentsStorage = context.createStorage<StudentsStorage>(`${context.appId}-students`, {});
     const updateTitle = (time?: string) => {
       box.titleBar.setTitle(`${title}   ${time}`);
     };
@@ -125,7 +130,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     const viewManager = new ViewManager(context, role== RoleType.teacher, options);
     const writeableManager = new WritableController(context, uid);
     if (role === RoleType.teacher) {
-      controller = new TeacherController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
+      controller = new TeacherController(context, uid, nickName, storage, studentsStorage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
         <TeacherApp controller={controller as TeacherController} language={language} />,
         $uiContent,
@@ -134,7 +139,7 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
         }
       );
     } else {
-      controller = new StudentController(context, uid, nickName, storage, $log, api, viewManager, writeableManager);
+      controller = new StudentController(context, uid, nickName, storage, studentsStorage, $log, api, viewManager, writeableManager);
       ReactDOM.render(
         <StudentApp controller={controller} language={language} />,
         $uiContent,

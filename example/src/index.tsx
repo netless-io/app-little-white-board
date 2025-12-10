@@ -55,8 +55,8 @@ if (!sUid) {
     sessionStorage.setItem('uid', uid); 
 }
 const room = await whiteWebSdk.joinRoom({
-    uuid: "eb20c780a48e11ef844c9de7e0348444",
-    roomToken: "NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzMxODk4MzIxMDk2Jm5vbmNlPWViNDA4NDgwLWE0OGUtMTFlZi05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPTdhZDAwNDdkZGI5ODYyZDgxOTk1NDQ0YTAzMzZlNzE2MGNjNzAwNDBkNDBjOTI5MDQ0MDM0ZTYyZmFlOTVjMDMmdXVpZD1lYjIwYzc4MGE0OGUxMWVmODQ0YzlkZTdlMDM0ODQ0NA",
+    uuid: "cbc67f00169f11f0826bfd782d7d3846",
+    roomToken: "NETLESSROOM_YWs9VWtNUk92M1JIN2I2Z284dCZleHBpcmVBdD0xNzY1MzU5ODU1OTQ0Jm5vbmNlPWEwM2MwYzgwLWQ0ZTMtMTFmMC05NmE5LWFiMzg4NjE4OThhZiZyb2xlPTEmc2lnPWY3ZWFmODJhYjdjMjQxNmZjNjQ5Y2UyN2Y4Y2NmMmI5NTJiMDA3Y2Q2NjFkMmYyMzE5ZDQwYzYwZGI4NDZhNGMmdXVpZD1jYmM2N2YwMDE2OWYxMWYwODI2YmZkNzgyZDdkMzg0Ng",
     uid,
     region: "cn-hz",
     isWritable: isWritable,
@@ -87,6 +87,7 @@ const room = await whiteWebSdk.joinRoom({
 })
 if (room.isWritable) {
     room.setScenePath("/init");
+    room.syncMode = true;
 }
 const manager = await WindowManager.mount({ room , container:elm, chessboard: true, cursor: true, supportAppliancePlugin: true});
 if (manager) {

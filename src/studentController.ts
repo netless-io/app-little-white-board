@@ -1,17 +1,18 @@
 import type { AppliancePluginInstance } from "@netless/appliance-plugin/dist/plugin";
 import type { AppContext, Storage } from "@netless/window-manager";
-import { Api, LitteBoardStorage, Logger, ProgressType, Student } from "./app-little-board";
+import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage } from "./app-little-board";
 import type { StudentApp } from "./student";
-import cloneDeep from "lodash/cloneDeep";
 import { ViewManager } from "./viewManager";
 import { WritableController } from "./writableManager";
+import { clone } from "lodash";
 
 export class StudentController {
     readonly appliancePlugin: AppliancePluginInstance;
     readonly context:AppContext;
     readonly uid: string;
     readonly nickName: string;
-    storage: Storage<LitteBoardStorage>;
+    readonly storage: Storage<LitteBoardStorage>;
+    readonly studentsStorage: Storage<StudentsStorage>;
     $log: Logger;
     private vDom?: StudentApp;
     readonly api: Api;
@@ -22,6 +23,7 @@ export class StudentController {
         uid: string, 
         nickName: string, 
         storage: Storage<LitteBoardStorage>,
+        studentsStorage: Storage<StudentsStorage>,
         $log: Logger, 
         api:Api, 
         viewManager:ViewManager,
@@ -32,6 +34,7 @@ export class StudentController {
         this.uid = uid;
         this.nickName = nickName;
         this.storage = storage;
+        this.studentsStorage = studentsStorage;
         this.$log = $log;
         this.api = api;
         this.viewManager = viewManager;
@@ -114,14 +117,14 @@ export class StudentController {
                 break;
         }
     }
-    private setUseListEffect(users?: Student[]){
-        const userList = users || [];
-        const user = userList.find(u=>u.uid === this.uid);
+
+    private setUseItemEffect(user?: Student){
         if (user) {
             const isBol = !!user.isCommit
             this.setCurIsCommit(isBol);
         }
     }
+
     mount(){
         if (!this.vDom) {
             setTimeout(() => {
@@ -130,13 +133,21 @@ export class StudentController {
         }
         const progress =  this.storage.state.progress
         this.setProgressEffect(progress);
-        this.setUseListEffect(this.storage.state.userList);
+        const uids = Object.keys(this.studentsStorage.state || {});
+        if(uids.includes(this.uid) && this.studentsStorage.state[this.uid]){
+            this.setUseItemEffect(this.studentsStorage.state[this.uid]);
+        }
         this.storage.addStateChangedListener(diff => {
             if (diff.progress && diff.progress.newValue) {
                 this.setProgressEffect(diff.progress.newValue);
             }
-            if (diff.userList && diff.userList.newValue) {
-                this.setUseListEffect(diff.userList.newValue);
+        });
+        this.studentsStorage.addStateChangedListener(diff => {
+            if (diff) {
+                const uids = Object.keys(diff);
+                if(uids.includes(this.uid) && diff[this.uid] && diff[this.uid]?.newValue){
+                    this.setUseItemEffect(diff[this.uid]?.newValue);
+                }
             }
         });
         this.writeableManager.mount();
@@ -157,15 +168,13 @@ export class StudentController {
         if (!this.context.getIsWritable()) {
             throw new Error("[LittleBoard] not writable");
         }
-        const userList = cloneDeep(this.storage.state.userList)
-        const curUserIndex = userList.findIndex(u=>u.uid === this.uid);
-        if (curUserIndex >- 1) {
-            userList[curUserIndex].isCommit = true;
+        const curUser = clone(this.studentsStorage.state[this.uid]);
+        if (curUser) {
+            curUser.isCommit = true;
+            this.studentsStorage.setState({ [this.uid]: curUser });
         } else {
             throw new Error("[LittleBoard] user not found");
         }
-        this.storage.setState({ userList });
-        this.writeableManager.publishOneWriteAble(this.uid, 'readOnly', true);
     }
     destory(){
         window.removeEventListener("message", this.onInserImage);

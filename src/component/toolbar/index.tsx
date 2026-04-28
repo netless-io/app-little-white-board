@@ -30,9 +30,10 @@ export const ToolBar: FunctionComponent<IToolBarProps> = props => {
     const plugin = controller.appliancePlugin;
     const [toolsKey, setToolsKey] = useState<EToolsKey>(EToolsKey.Image);
     const [color, setColor] = useState<Color>([]);
+    const toLocalToolsKey = (key?: number) => key as EToolsKey | undefined;
     useEffect(()=>{
         if(plugin.currentManager?.worker.currentToolsData?.toolsType){
-            setToolsKey(plugin.currentManager?.worker.currentToolsData?.toolsType);
+            setToolsKey(toLocalToolsKey(plugin.currentManager?.worker.currentToolsData?.toolsType)!);
         }
         const memberState = plugin.currentManager?.room?.state.memberState as MemberState;
         if (memberState.strokeColor) {
@@ -46,7 +47,7 @@ export const ToolBar: FunctionComponent<IToolBarProps> = props => {
         }
     },[])
     useEffect(()=>{
-        const currentTools = plugin.currentManager?.worker.currentToolsData?.toolsType
+        const currentTools = toLocalToolsKey(plugin.currentManager?.worker.currentToolsData?.toolsType);
         if (currentTools !== toolsKey) {
             setApplianceName(toolsKey);
         }

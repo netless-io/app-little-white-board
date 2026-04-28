@@ -1,9 +1,8 @@
 import React, { useContext } from 'react';
 import { TeacherController } from "./teacherController";
-import { ProgressType } from "./app-little-board";
+import { ProgressType, type Uid } from "./app-little-board";
 import { Button, Flex, Spin, Tabs } from 'antd';
 import { ToolBar } from './component/toolbar';
-import type { Uid } from '@netless/appliance-plugin/dist/collector';
 import { I18n_Teacher, I18nTeacherKey, Language } from './locale';
 
 

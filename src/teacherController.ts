@@ -1,12 +1,11 @@
 import type { AppliancePluginInstance } from "@netless/appliance-plugin";
 import type { AppContext, Displayer, Storage } from "@netless/window-manager";
-import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage } from "./app-little-board";
+import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage, type Uid } from "./app-little-board";
 import type { DisplayerCallbacks } from "white-web-sdk";
 import { TeacherApp } from "./teacher";
 // import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
 // import isEqual from "lodash/isEqual";
-import type { Uid } from "@netless/appliance-plugin/dist/collector";
 import { ViewManager } from "./viewManager";
 import { WritableController } from "./writableManager";
 

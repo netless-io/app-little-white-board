@@ -30,16 +30,9 @@ export default defineConfig(({ mode }) => {
       },
       outdir: "dist",
       sourcemap: true,
-      // rollupOptions: {
-      //   external,
-      //   output:{
-      //     globals:{
-      //       whiteWebSdk: 'white-web-sdk',
-      //       appliancePlugin: '@netless/appliance-plugin',
-      //       windowManager: '@netless/window-manager'
-      //     }
-      //   }
-      // },
+      rollupOptions: {
+        external,
+      },
       minify: isProd,
     }
   };

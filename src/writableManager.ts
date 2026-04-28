@@ -1,17 +1,18 @@
-import type { _ArrayTrue, AppliancePluginInstance } from "@netless/appliance-plugin";
-import { Uid } from "@netless/appliance-plugin/dist/collector/types";
+import type { AppliancePluginInstance } from "@netless/appliance-plugin";
+import type { Uid } from "./app-little-board";
 import type { AppContext, Room, Storage } from "@netless/window-manager";
 import isString from "lodash/isString";
 import isArray from "lodash/isArray";
 import clone from "lodash/clone";
 
 export type FilterPublishAutType = "writable" | "readOnly";
+type ArrayTrue<T> = true | T[];
 
 export interface LitteBoardWriteableStorage {
     /** 可写用户组, 如果是true, 则为所有用户可写 */
-    writable?:  _ArrayTrue<Uid>;
+    writable?: ArrayTrue<Uid>;
     /** 只读用户组, 如果是true, 则为所有用户可读 */
-    readOnly?: _ArrayTrue<Uid>;
+    readOnly?: ArrayTrue<Uid>;
 }
 
 export class WritableController {
@@ -20,8 +21,8 @@ export class WritableController {
     readonly uid: string;
     readonly room?: Room;
     readonly storage: Storage<LitteBoardWriteableStorage>;
-    private writable?: _ArrayTrue<Uid>;
-    private readOnly?: _ArrayTrue<Uid>;
+    private writable?: ArrayTrue<Uid>;
+    private readOnly?: ArrayTrue<Uid>;
     constructor(context:AppContext, uid: string){
         this.context = context;
         this.appliancePlugin = (context as any).manager.windowManger._appliancePlugin;
@@ -71,7 +72,7 @@ export class WritableController {
         }
         await this.writeEffect();
     }
-    publishWriteAble(writable?:_ArrayTrue<Uid>, readOnly?:_ArrayTrue<Uid>) {
+    publishWriteAble(writable?: ArrayTrue<Uid>, readOnly?: ArrayTrue<Uid>) {
         if (writable === true) {
             this.writable = true;
         } else if(isArray(writable)) {

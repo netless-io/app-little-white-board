@@ -1,4 +1,4 @@
-import type { AppliancePluginInstance } from "@netless/appliance-plugin/dist/plugin";
+import type { AppliancePluginInstance } from "@netless/appliance-plugin";
 import type { AppContext, Storage } from "@netless/window-manager";
 import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage } from "./app-little-board";
 import type { StudentApp } from "./student";

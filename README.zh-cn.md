@@ -173,3 +173,7 @@ manager.addApp({
 - [Netless Window Manager](https://github.com/netless-io/window-manager)
 - [声网互动白板文档](https://doc.shengwang.cn/doc/whiteboard/javascript/fastboard-sdk/get-started/join-room-fb)
 - [Issues](https://github.com/netless-io/app-little-white-board/issues)
+
+## 项目结构与原生 UI 验证
+
+参见 [代码结构、课堂流程和 window-manager 双端自动化](docs/native-ui.zh-CN.md)。UI 使用原生 DOM/CSS/SVG，无需 React 或 Ant Design。

@@ -2,11 +2,9 @@ import type { NetlessApp, Room} from "@netless/window-manager";
 import type { ImageInformation } from "@netless/appliance-plugin";
 import styles from './style.less?inline'
 import { getUserPayload } from "./utils";
-import ReactDOM from "react-dom";
 import { TeacherController } from "./teacherController";
 import { StudentController } from "./studentController";
 import { TeacherApp } from "./teacher";
-import React from "react";
 import { StudentApp } from "./student";
 import { ViewManager } from "./viewManager";
 import { WritableController } from "./writableManager";
@@ -129,27 +127,19 @@ export const NetlessAppLittleBoard: NetlessApp<LittleBoardAttributes, {}, Little
     let controller:TeacherController | StudentController | undefined = undefined;
     const viewManager = new ViewManager(context, role== RoleType.teacher, options);
     const writeableManager = new WritableController(context, uid);
+    let ui: TeacherApp | StudentApp;
     if (role === RoleType.teacher) {
       controller = new TeacherController(context, uid, nickName, storage, studentsStorage, $log, api, viewManager, writeableManager);
-      ReactDOM.render(
-        <TeacherApp controller={controller as TeacherController} language={language} />,
-        $uiContent,
-        ()=>{
-          controller?.mount()
-        }
-      );
+      ui = new TeacherApp({ controller, language });
     } else {
       controller = new StudentController(context, uid, nickName, storage, studentsStorage, $log, api, viewManager, writeableManager);
-      ReactDOM.render(
-        <StudentApp controller={controller} language={language} />,
-        $uiContent,
-        ()=>{
-          controller?.mount()
-        }
-      );
+      ui = new StudentApp({ controller, language });
     }
+    ui.mount($uiContent);
+    controller.mount();
     $log(`[LittleBoard] new ${context.appId}`);
     context.emitter.on("destroy", () => {
+      ui.destroy();
       controller?.destory();
       viewManager?.destroy();
       writeableManager?.destroy();

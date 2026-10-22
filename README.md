@@ -143,3 +143,7 @@ Run the `example` in the repo:
 - [Netless Window Manager](https://github.com/netless-io/window-manager)
 - [Agora Interactive Whiteboard docs](https://doc.shengwang.cn/doc/whiteboard/javascript/fastboard-sdk/get-started/join-room-fb)
 - [Issues](https://github.com/netless-io/app-little-white-board/issues)
+
+## Development and native UI
+
+The UI uses native DOM/CSS/SVG without React or Ant Design. See the [architecture and teacher/student automation guide (Chinese)](docs/native-ui.zh-CN.md).

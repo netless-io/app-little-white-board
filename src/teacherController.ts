@@ -2,7 +2,7 @@ import type { AppliancePluginInstance } from "@netless/appliance-plugin";
 import type { AppContext, Displayer, Storage } from "@netless/window-manager";
 import { Api, LitteBoardStorage, Logger, ProgressType, Student, StudentsStorage, type Uid } from "./app-little-board";
 import type { DisplayerCallbacks } from "white-web-sdk";
-import { TeacherApp } from "./teacher";
+import type { TeacherApp } from "./teacher";
 // import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
 // import isEqual from "lodash/isEqual";

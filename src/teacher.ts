@@ -74,6 +74,7 @@ export class TeacherApp {
     setRenderPageId(activeKey: string) {
         this.state.activeKey = activeKey;
         this.update();
+        this.tabButtons.get(activeKey)?.scrollIntoView({ block: "nearest", inline: "nearest" });
     }
 
     setProgress(progress: ProgressType) {

@@ -55,10 +55,25 @@
         display: flex;
         gap: 2px;
         flex: none;
+        min-width: 0;
         max-width: 100%;
         overflow-x: auto;
+        overflow-y: hidden;
         pointer-events: auto;
+        // Use a sized WebKit scrollbar so macOS does not hide it until scrolling.
+        @supports not selector(::-webkit-scrollbar) {
+            scrollbar-width: thin;
+            scrollbar-color: #bfbfbf #f0f0f0;
+        }
+        &::-webkit-scrollbar { height: 8px; }
+        &::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 4px; }
+        &::-webkit-scrollbar-thumb {
+            background: #bfbfbf;
+            border-radius: 4px;
+            &:hover { background: #8c8c8c; }
+        }
         button {
+            flex: 0 0 auto;
             padding: 6px 16px;
             border: 1px solid #f0f0f0;
             border-radius: 6px 6px 0 0;
